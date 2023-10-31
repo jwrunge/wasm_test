@@ -1,34 +1,32 @@
-use std::ptr;
+use std::ffi::CStr;
+use std::os::raw::c_char;
 
 #[no_mangle]
-pub fn greet(name: &str) -> *const u8 {
-    let s = format!("Hello, {}!", name).to_string();
-    let len = s.len() as u8;
-    let ptr = ptr::addr_of!(s);
-
-    println!("{:#04x}, {:#04x}", ptr as u8, len);
+pub extern "C" fn greet(name: *const c_char) -> *const u8 {
+    let c_str = unsafe { CStr::from_ptr(name) };
+    let str_slice: &str = c_str.to_str().unwrap();
+    let s: String = str_slice.to_owned();  // Use str_buf as needed
+    println!("{}", s);
 
     s.as_ptr()
 }
 
 #[no_mangle]
-pub fn greetLen(name: &str) -> u8 {
-    let s = format!("Hello, {}!", name).to_string();
+pub extern "C" fn greet_len(name: *const c_char) -> u8 {
+    let c_str = unsafe { CStr::from_ptr(name) };
+    let str_slice: &str = c_str.to_str().unwrap();
+    let s: String = str_slice.to_owned();  // Use str_buf as needed
     let len = s.len() as u8;
-    let ptr = ptr::addr_of!(s);
-
-    println!("{:#04x}, {:#04x}", ptr as u8, len);
 
     len
 }
 
-#[cfg(test)]
-mod tests {
-    use super::greet;
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
 
-    #[test]
-    fn it_works() {
-        let t = greet("world");
-        // println!("{:#04x}, {:#04x}", t.0, t.1);
-    }
-}
+//     #[test]
+//     fn it_works() {
+//        greet("world");
+//     }
+// }

@@ -26,14 +26,16 @@
         function wasmString(loc, len) {
             const mem = new Uint8Array(wasm?.memory?.buffer, loc, len);
             console.log(mem);
-            
+            const dec = new TextDecoder();
+            return dec.decode(mem);
         }
 
         setTimeout(()=> {
             console.log(wasm)
             if(wasm) {
-                const memLoc = wasm.greet("WebAssembly");
-                const len = wasm.greetLen("WebAssembly");
+                let ab = (new TextEncoder()).encode("WebAssembly");
+                const memLoc = wasm.greet(ab);
+                const len = wasm.greet_len(ab);
                 console.log(memLoc, len);
                 const str = wasmString(memLoc, len);
                 console.log(str);
