@@ -8,42 +8,35 @@
     <script type="module">
         let wasm = null;
         const wasmPath = "./target/wasm32-unknown-unknown/release/wasm_test.wasm";
-        WebAssembly.instantiateStreaming(fetch(wasmPath), {
-            imports: {
-                imported_func: arg => {
-                    console.log(arg);
-                }
+
+        console.log("Setting up WASM memory");
+        const memory = new WebAssembly.Memory({initial: 1, maximum: 100});
+
+        console.log("Fetching WASM", wasmPath);
+        
+        WebAssembly.instantiateStreaming(fetch(wasmPath))
+        .then(Module=> {
+            console.log("Results:", Module);
+            const wasm = Module?.instance?.exports || null;
+
+            const offset = wasm.get_hello();
+            const stringBuffer = new Uint8Array(wasm.memory.buffer, offset, wasm.get_hello_len());
+
+            console.log(memory)
+            console.log("OFFSET, STRBUF", offset, stringBuffer);
+
+            let str = "";
+            for(let i=0; i<stringBuffer.length; i++) {
+                str += String.fromCharCode(stringBuffer[i]);    
             }
-        })
-        .then(results=> {
-            console.log(results);
-            wasm = results?.instance?.exports || null;
+
+            console.log("RET STR", str)
+            // Module.module.
+            
         })
         .catch(err=> {
             console.error(err);
         });
-
-        function wasmString(loc, len) {
-            const mem = new Uint8Array(wasm?.memory?.buffer, loc, len);
-            console.log(mem);
-            const dec = new TextDecoder();
-            return dec.decode(mem);
-        }
-
-        setTimeout(()=> {
-            console.log(wasm)
-            if(wasm) {
-                let ab = (new TextEncoder()).encode("WebAssembly");
-                const memLoc = wasm.greet(ab);
-                const len = wasm.greet_len(ab);
-                console.log(memLoc, len);
-                const str = wasmString(memLoc, len);
-                console.log(str);
-            }
-            else {
-                alert("Bad news: no WASM :-(")
-            }
-        }, 2000)
     </script>
   </body>
 </html>
